@@ -3,9 +3,12 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'docker build --pull --rm -f "Dockerfile" -t blog:latest "."'
+                dir('PiplineProject/Blog') {
+                    sh 'docker build --pull --rm -f "Dockerfile" -t blog:latest "."'
+                }
             }
         }
+
         stage('Trivy Scan') {
             steps {
                 sh '''
@@ -18,6 +21,7 @@ pipeline {
                 '''
             }
         }
+
         stage('OWASP Dependency Check') {
             steps {
                 dependencyCheck(
@@ -30,6 +34,7 @@ pipeline {
                 )
             }
         }
+
         stage('Run') {
             steps {
                 sh 'docker stop blog || true'
@@ -37,6 +42,7 @@ pipeline {
                 sh 'docker run -d -p 3000:3000 --name blog blog'
             }
         }
+
         stage('Nikto Scan') {
             steps {
                 sh '''
