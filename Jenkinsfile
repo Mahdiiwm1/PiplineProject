@@ -3,9 +3,9 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'pwd && find . -maxdepth 3 -name Dockerfile'
-                dir('PiplineProject/Blog') {
-                    sh 'docker build --pull --rm -f Dockerfile -t blog:latest "."'
+                sh 'find . -maxdepth 3 -name Dockerfile'    
+                    dir('Blog') {
+                sh 'docker build --pull --rm -f Dockerfile -t blog:latest "."'
                 }
             }
         }
