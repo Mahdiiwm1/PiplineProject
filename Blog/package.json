@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "test": "jest",
     "start": "node ./bin/www"
   },
   "dependencies": {
@@ -14,5 +15,8 @@
     "morgan": "~1.9.1",
     "pug": "^3.0.3",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "jest": "^30.5.2"
   }
 }
