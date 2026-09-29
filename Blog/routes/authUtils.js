@@ -1,6 +1,9 @@
 const crypto = require('crypto');
-const { createUser } = require('.routes./roles');
+const bcrypt = require('bcrypt');
+const { createUser } = require('../routes/roles');
+
 const MIN_PASSWORD_LENGTH = 8;
+const SENSITIVE_KEYS = ['password', 'sessionId'];
 
 // G1 ja G2
 function createSessionId() {
@@ -25,7 +28,7 @@ function validateCredentials(username, password) {
 function logAuthEvent (type, details = {}, logger = console.log) {
     const safe = {};
     for (const key of Object.keys(details)) {
-        if (!SENSITIVE_KEY.includes(key)) {
+        if (!SENSITIVE_KEYS.includes(key)) {
             safe[key] = details[key];
         }
     }
@@ -38,7 +41,7 @@ function logAuthEvent (type, details = {}, logger = console.log) {
 function registerUser(input) {
     try {
         if (!input || validateCredentials(input.username, input.password)) {
-            return {ok :false, error: "Registration failed."};
+            return {ok: false, error: "Registration failed."};
         }
         const user = createUser(input);
         user.passwordhash = bcrypt.hashSync(input.password, 10);
