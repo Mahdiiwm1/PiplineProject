@@ -11,6 +11,7 @@ RUN npm test
 FROM node:20-alpine
 ENV NODE_ENV=production
 WORKDIR /usr/src/app
+COPY --from=test /usr/src/app/package.json ./package.json
 COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
 RUN apk add python3 py3-pip build-base
 RUN npm install --omit=dev && mv node_modules ../
