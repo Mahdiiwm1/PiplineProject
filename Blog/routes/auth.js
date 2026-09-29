@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const db = require('../database');
 const router = express.Router();
 
-const { validateCredentials, createSessionId, logAuthEvent } 1= require('../routes/authUtils')
+const { validateCredentials, createSessionId, logAuthEvent } = require('../routes/authUtils')
 const { createUser } = require ('../routes/roles')
 
 

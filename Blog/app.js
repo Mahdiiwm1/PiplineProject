@@ -2,12 +2,13 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const crypto = require('crypto');
 const app = express();
 const port = process.env.PORT || 3000;
 
 const authRoutes = require('./routes/auth');
 const db = require('./database');
+const { logAuthEvent } = require('./authUtils');
+const { isAdmin } = require('./roles');
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
@@ -19,17 +20,14 @@ app.use(cookieParser());
 // Middleware to check for session cookie
 app.use((req, res, next) => {
     if (req.cookies.sessionId) {
-        console.log('SessionId found: ', req.cookies.sessionId);
         db.get("SELECT * FROM users WHERE sessionId = ?", [req.cookies.sessionId], (err, user) => {
             if (err) throw err;
             if (user) {
-              console.log('User found: ', user);
               req.user = user;
             }
             next();
         });
     } else {
-        console.log('No sessionId');
         next();
     }
 });
@@ -65,7 +63,8 @@ app.post('/new-post', (req, res) => {
 });
 
 app.get('/admin', (req, res) => {
-  if (!req.user || req.user.username !== 'admin') {
+  if (!req.user || !isAdmin(req.user)) {
+      logAuthEvent('admin_access_denied', { username: req.user ? req.user.username : 'anonymous' });
       return res.status(403).send('Access denied');
   }
   res.render('admin', { title: 'Admin Page', user: req.user });
