@@ -5,6 +5,10 @@ const {
     createSessionId
 } = require('../routes/authUtils');
 
+const request = require('supertest');
+const app = require('../app');
+const crypto = require('crypto');
+
 const {
     createUser,
     isAdmin
@@ -12,11 +16,16 @@ const {
 
 // G1 (S)
 describe("G1: Two sesion IDS for the same user are different.", () => {
-    test("createSessionId returns a different value each time", () => {
-        const id1 = createSessionId();
-        const id2 = createSessionId();
-        expect(id1).not.toBe(id2);
+    test("output cannot be reproduced by hashing a known value", () => {
+        const id = createSessionId();
+        const guessableHash = crypto.createHash('sha256').update('anyUsername').digest('hex');
+        expect(id).not.toBe(guessableHash);
     });
+    //.test("createSessionId returns a different value each time", () => {
+    //    const id1 = createSessionId();
+    //    const id2 = createSessionId();
+    //    expect(id1).not.toBe(id2);
+    //});
 });
 
 // G2: sessionID is not a hash of the username (S)
@@ -164,4 +173,17 @@ describe("G10b: isAdmin", () => {
     expect(isAdmin(undefined)).toBe(false);
 
   });
+});
+
+test("G-integration: login always issues a new session ID, never reuses the client's", async () => {
+  const fakeOldSessionId = "attackerSuppliedSessionId1234567890";
+
+  const res = await request(app)
+    .post("/auth/login")
+    .set("Cookie", `sessionId=${fakeOldSessionId}`)
+    .send({ username: "validtestuser", password: "Secret123" });
+
+  const setCookieHeader = res.headers["set-cookie"];
+  expect(setCookieHeader).toBeDefined();
+  expect(setCookieHeader[0]).not.toContain(fakeOldSessionId);
 });

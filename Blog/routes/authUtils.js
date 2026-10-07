@@ -9,6 +9,11 @@ const SENSITIVE_KEYS = ['password', 'sessionId'];
 function createSessionId() {
     return crypto.randomBytes(32).toString('hex');
 }
+/*Defectice code 1
+function createSessionId(username) {
+    return crypto.createHash('sha256').update(username).digest('hex');
+}
+*/
 
 // G3, G4, G5 & G6
 function validateCredentials(username, password) {
