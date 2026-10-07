@@ -3,12 +3,13 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3030;
 
 const authRoutes = require('./routes/auth');
 const db = require('./database');
-const { logAuthEvent } = require('./authUtils');
-const { isAdmin } = require('./roles');
+
+const { logAuthEvent } = require('./routes/authUtils.js');
+const { isAdmin } = require('./routes/roles.js');
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
@@ -20,6 +21,8 @@ app.use(cookieParser());
 // Middleware to check for session cookie
 app.use((req, res, next) => {
     if (req.cookies.sessionId) {
+        // defective code 4
+        console.log("Session ID found: ", req.cookies.sessionId);
         db.get("SELECT * FROM users WHERE sessionId = ?", [req.cookies.sessionId], (err, user) => {
             if (err) throw err;
             if (user) {
@@ -70,8 +73,8 @@ app.get('/admin', (req, res) => {
   res.render('admin', { title: 'Admin Page', user: req.user });
 });
 
-//app.listen(port, () => {
-//    console.log(`Server is running on http://localhost:${port}`);
-//});
-
+/*app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+});
+*/
 module.exports = app;
