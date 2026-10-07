@@ -24,9 +24,9 @@ router.post('/login', (req, res) => {
         if (err) throw err;
         if (user && bcrypt.compareSync(password, user.password)) {
             /*defective code 2*/
-            const sessionId = req.cookies.sessionId || createSessionId();
+            //const sessionId = req.cookies.sessionId || createSessionId();
             
-            //const sessionId = createSessionId();
+            const sessionId = createSessionId();
             db.run("UPDATE users SET sessionId = ? WHERE username = ?", [sessionId, user.username], (err) => {
                 if (err) throw err;
                 res.cookie('sessionId', sessionId, { httpOnly: true });
