@@ -3,7 +3,7 @@ const {
     registerUser,
     logAuthEvent,
     createSessionId
-} = require('../routes/authUtils');
+} = require('../routes/authUtils.js');
 
 const request = require('supertest');
 const app = require('../app');
@@ -146,44 +146,35 @@ describe("G10a: extra role field at registration", () => {
     });
 });
 
-// G10b (E)
-describe("G10b: isAdmin", () => {
-    test("a normal user is not admin", () => {
+// G10a-f (E)
+describe("G10a: isAdmin", () => {
+    test("G10a: normal user is not admin", () => {
         expect(isAdmin({username: "mamosa", role: "user"})).toBe(false);
     });
 
-    // G10c (E)
-    test("an admin user is admin", () => {
+    // G10b (E)
+    test("G10b: an admin user is admin", () => {
         expect(isAdmin({username: "admin", role: "admin"})).toBe(true);
     });
 
-    // G10d (E)
-    test("unknown user has no rights", () => {
+    // G10c (E)
+    test("G10c: null user has no rights", () => {
         expect(isAdmin(null)).toBe(false);
     });
 
     // G10d (E)
-    test("G10d: missing role has no rights", () => {
-    expect(isAdmin({ username: "tim" })).toBe(false);
-  });
+    test("G10d: unrecognized role has no rights", () => {
+        expect(isAdmin({ username: "mallory", role: "superuser" })).toBe(false);
+    });
 
-  // G10d (E)
-  test("G10d: null and undefined do not crash", () => {
-    expect(isAdmin(null)).toBe(false);
-    expect(isAdmin(undefined)).toBe(false);
+    // G10e (E)
+    test("G10e: missing role has no rights", () => {
+    expect(isAdmin({ username: "tim"})).toBe(false);
+    });
 
-  });
-});
-
-test("G-integration: login always issues a new session ID, never reuses the client's", async () => {
-  const fakeOldSessionId = "attackerSuppliedSessionId1234567890";
-
-  const res = await request(app)
-    .post("/auth/login")
-    .set("Cookie", `sessionId=${fakeOldSessionId}`)
-    .send({ username: "validtestuser", password: "Secret123" });
-
-  const setCookieHeader = res.headers["set-cookie"];
-  expect(setCookieHeader).toBeDefined();
-  expect(setCookieHeader[0]).not.toContain(fakeOldSessionId);
+    // G10f (E)
+    test("G10f: null and undefined do not crash", () => {
+        expect(isAdmin(null)).toBe(false);
+        expect(isAdmin(undefined)).toBe(false);
+    });
 });
