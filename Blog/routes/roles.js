@@ -1,5 +1,8 @@
 //G10a
 function createUser(input) {
+    if (input === null || typeof input !== 'object') {
+        return null;
+    }
     return {username: input.username, role: "user"};
 }
 
