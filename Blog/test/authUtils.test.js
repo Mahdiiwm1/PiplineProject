@@ -135,6 +135,15 @@ describe("G9: regeistration without password", () => {
     test("missing input (undefined deos not crash)", () => {
         expect(() => registerUser(undefined)).not.toThrow();
     });
+
+    test("valid input registers the user and hashes the password", () => {
+        const result = registerUser({username: "mamosa", password: "mamosa123"});
+        expect(result.ok).toBe(true);
+        expect(result.user.username).toBe("mamosa");
+        expect(result.user.role).toBe("user");
+        expect(result.user.passwordhash).not.toBe("mamosa123");
+        expect(result.user.passwordhash).toMatch(/^\$2[aby]\$/);
+    });
 });
 
 // G10a (E)

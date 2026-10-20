@@ -45,7 +45,7 @@ function logAuthEvent (type, details = {}, logger = console.log) {
 // G9
 function registerUser(input) {
     try {
-        if (!input || validateCredentials(input.username, input.password)) {
+        if (!input || !validateCredentials(input.username, input.password)) {
             return {ok: false, error: "Registration failed."};
         }
         const user = createUser(input);
