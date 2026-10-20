@@ -21,11 +21,11 @@ describe("G1: Two sesion IDS for the same user are different.", () => {
         const guessableHash = crypto.createHash('sha256').update('anyUsername').digest('hex');
         expect(id).not.toBe(guessableHash);
     });
-    //.test("createSessionId returns a different value each time", () => {
-    //    const id1 = createSessionId();
-    //    const id2 = createSessionId();
-    //    expect(id1).not.toBe(id2);
-    //});
+    test("createSessionId returns a different value each time", () => {
+        const id1 = createSessionId();
+        const id2 = createSessionId();
+        expect(id1).not.toBe(id2);
+    });
 });
 
 // G2: sessionID is not a hash of the username (S)
