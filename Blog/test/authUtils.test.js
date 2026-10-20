@@ -14,8 +14,8 @@ const {
     isAdmin
 } = require( '../routes/roles');
 
-// G1 (S)
-describe("G1: Two sesion IDS for the same user are different.", () => {
+// G1: Two session IDs for the same user are different (S)
+describe("G1: Two session IDs for the same user are different.", () => {
     test("output cannot be reproduced by hashing a known value", () => {
         const id = createSessionId();
         const guessableHash = crypto.createHash('sha256').update('anyUsername').digest('hex');
@@ -28,35 +28,52 @@ describe("G1: Two sesion IDS for the same user are different.", () => {
     });
 });
 
-// G2: sessionID is not a hash of the username (S)
+// G2: Session ID is 64 hex characters, not a hash of the username (S)
 describe("G2: Session ID format.", () => {
-    test("is 64 hex charachters long.", () => {
-
+    test("is 64 hex characters long.", () => {
         const id = createSessionId();
         expect(id).toMatch(/^[0-9a-f]{64}$/);
     });
 });
 
-// G3: Empty username is rejected (T)
+// G3: Empty or whitespace-only username is rejected (T)
 describe("G3: Empty username.", () =>{
-    test("Emty string returns false", () =>{
+    test("Empty string returns false", () =>{
         const username = "";
         const password = "Secret123";
 
         const result = validateCredentials(username, password);
         expect(result).toBe(false);
     });
+
+    test("Spaces only as string returns false.", () =>{
+        const result = validateCredentials("   ", "Secret123");
+        expect(result).toBe(false);
+    });
 });
 
-test("Spaces only as string returns fals.", () =>{
-    const result = validateCredentials("   ", "Secret123");
-    expect(result).toBe(false);
-});
-
-//G4: missing or null password is rejected.
+// G4: Missing or null password is rejected (T)
 describe("G4: missing or null password", () => {
     test("null password returns false.", ()=> {
-        const result = validateCredentials("mahdi", "123456");
+        const result = validateCredentials("mahdi", null);
+        expect(result).toBe(false);
+    });
+
+    test("undefined password returns false.", ()=> {
+        const result = validateCredentials("mahdi", undefined);
+        expect(result).toBe(false);
+    });
+
+    test("missing password argument returns false.", ()=> {
+        const result = validateCredentials("mahdi");
+        expect(result).toBe(false);
+    });
+});
+
+// G5: Password length boundary, 7 fails and 8 passes (T)
+describe("G5: Password length boundary.", ()=> {
+    test("7 characters returns false", () =>{
+        const result = validateCredentials("mahdi", "1234567");
         expect(result).toBe(false);
     });
 
@@ -66,39 +83,26 @@ describe("G4: missing or null password", () => {
     });
 });
 
-// G5: Password length boundry
-describe("G5: Password length boundry.", ()=> {
-    test("7 characters returns false", () =>{
-        const result = validateCredentials("mahdi", "1234567");
-        expect(result).toBe(false);
-    });
-
-    test("8 charaters return true", () => {
-        const result = validateCredentials("mahdi", "12345678");
-        expect(result).toBe(true);
-    });
-});
-
-// G6 (T)
+// G6: Wrong data types for username or password are rejected (T)
 describe("G6: wrong data types", () => {
     test("numbers as usernames returns false", () => {
         const username = 12345;
         const result = validateCredentials(username, "mamosa123");
         expect(result).toBe(false);
     });
- });
 
- test("object as username returns false", () => {
-    const result = validateCredentials({username: "mamosa"}, "mamosa123");
-    expect(result).toBe(false);
- });
+    test("object as username returns false", () => {
+        const result = validateCredentials({username: "mamosa"}, "mamosa123");
+        expect(result).toBe(false);
+    });
 
- test ("number as password returns false", () => {
-    const result = validateCredentials("mamosa", 12345678);
-    expect(result).toBe(false);
- });
+    test("number as password returns false", () => {
+        const result = validateCredentials("mamosa", 12345678);
+        expect(result).toBe(false);
+    });
+});
 
-// G7 (R)
+// G7: Failed login is logged (R)
 describe("G7: failed login is logged", () => {
     test("logger is called with the event type and username", () => {
         const fakeLogger = jest.fn();
@@ -110,11 +114,11 @@ describe("G7: failed login is logged", () => {
     });
 });
 
-// G8 (I)
+// G8: No secrets in logs (I)
 describe("G8: no secrets in logs", () => {
-    test("password and sesstionId are not int the log line", () => {
+    test("password and sessionId are not in the log line", () => {
         const fakeLogger = jest.fn();
-        const  details = {username: "mamosa", password: "mamosa123", sessionId: "abc123"};
+        const details = {username: "mamosa", password: "mamosa123", sessionId: "abc123"};
         logAuthEvent("login_failed", details, fakeLogger);
         const logged = fakeLogger.mock.calls[0][0];
         expect(logged).not.toContain("mamosa123");
@@ -123,16 +127,16 @@ describe("G8: no secrets in logs", () => {
     });
 });
 
-// G9 (D)
-describe("G9: regeistration without password", () => {
-    test("return an error result and deosnot throw", () => {
+// G9: Registration with missing data returns an error and does not crash (D)
+describe("G9: registration without password", () => {
+    test("returns an error result and does not throw", () => {
         const input = {username: "mamosa"};
         expect(() => registerUser(input)).not.toThrow();
         const result = registerUser(input);
         expect(result.ok).toBe(false);
     });
 
-    test("missing input (undefined deos not crash)", () => {
+    test("missing input (undefined) does not crash", () => {
         expect(() => registerUser(undefined)).not.toThrow();
     });
 
@@ -146,43 +150,51 @@ describe("G9: regeistration without password", () => {
     });
 });
 
-// G10a (E)
+// G10: Role field supplied at registration is ignored (E)
 describe("G10a: extra role field at registration", () => {
     test("createUser ignores the role field and sets it to 'user'", () => {
-        const evilinput = {username: "mamosa", password: "mamosa123", role: "admin"};
-        const user = createUser(evilinput);
+        const evilInput = {username: "mamosa", password: "mamosa123", role: "admin"};
+        const user = createUser(evilInput);
         expect(user.role).toBe("user");
+    });
+
+    test("createUser with null or undefined input does not crash and returns null", () => {
+        expect(() => createUser(null)).not.toThrow();
+        expect(() => createUser(undefined)).not.toThrow();
+        expect(createUser(null)).toBeNull();
+        expect(createUser(undefined)).toBeNull();
     });
 });
 
-// G10a-f (E)
-describe("G10a: isAdmin", () => {
-    test("G10a: normal user is not admin", () => {
+// G11: isAdmin grants rights only to role "admin" (E)
+describe("G11: isAdmin", () => {
+    // G11a: A normal user is not admin (E)
+    test("G11a: normal user is not admin", () => {
         expect(isAdmin({username: "mamosa", role: "user"})).toBe(false);
     });
 
-    // G10b (E)
-    test("G10b: an admin user is admin", () => {
+    // G11b: An admin user is recognised as admin (E)
+    test("G11b: an admin user is admin", () => {
         expect(isAdmin({username: "admin", role: "admin"})).toBe(true);
     });
 
-    // G10c (E)
-    test("G10c: null user has no rights", () => {
+    // G11c: A null user has no rights (E)
+    test("G11c: null user has no rights", () => {
         expect(isAdmin(null)).toBe(false);
     });
 
-    // G10d (E)
-    test("G10d: unrecognized role has no rights", () => {
+    // G11d: An unrecognized role has no rights (E)
+    test("G11d: unrecognized role has no rights", () => {
         expect(isAdmin({ username: "mallory", role: "superuser" })).toBe(false);
     });
 
-    // G10e (E)
-    test("G10e: missing role has no rights", () => {
-    expect(isAdmin({ username: "tim"})).toBe(false);
+    // G11e: A missing role has no rights (E)
+    test("G11e: missing role has no rights", () => {
+        expect(isAdmin({ username: "tim"})).toBe(false);
     });
 
-    // G10f (E)
-    test("G10f: null and undefined do not crash", () => {
+    // G11f: null and undefined do not crash (E)
+    test("G11f: null and undefined do not crash", () => {
         expect(isAdmin(null)).toBe(false);
         expect(isAdmin(undefined)).toBe(false);
     });
